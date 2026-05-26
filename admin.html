@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>لوحة التحكم — غريب العجمي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#080f1a;font-family:'Cairo',sans-serif;color:#F0EAE0;min-height:100vh;}
+
+/* ══ LOGIN SCREEN ══ */
+#login-screen{position:fixed;inset:0;background:linear-gradient(160deg,#080f1a 0%,#0e1828 60%,#152035 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.login-box{background:rgba(28,43,69,0.9);border:1px solid rgba(201,169,110,0.25);border-radius:16px;padding:48px 40px;width:min(400px,90vw);text-align:center;backdrop-filter:blur(12px);}
+.login-logo{margin-bottom:8px;font-size:22px;font-weight:700;color:#F0EAE0;}
+.login-sub{font-size:13px;color:#C9A96E;margin-bottom:32px;}
+.login-icon{margin-bottom:24px;}
+.login-input{width:100%;background:rgba(14,24,40,0.8);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:12px 16px;color:#F0EAE0;font-size:14px;font-family:'Cairo',sans-serif;outline:none;margin-bottom:12px;text-align:center;letter-spacing:0.1em;}
+.login-input:focus{border-color:rgba(201,169,110,0.5);}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,#C9A96E,#9d7c42);color:#0e1828;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:opacity .2s;}
+.login-btn:hover{opacity:.85;}
+.login-err{color:#ff6b6b;font-size:12px;margin-top:10px;display:none;}
+
+/* ══ MAIN LAYOUT ══ */
+#app{display:none;min-height:100vh;}
+.top-bar{background:rgba(14,24,40,0.95);border-bottom:1px solid rgba(201,169,110,0.12);padding:0 5%;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);}
+.top-bar-logo{font-size:16px;font-weight:700;color:#F0EAE0;}
+.top-bar-logo span{color:#C9A96E;font-size:12px;display:block;font-weight:500;}
+.top-bar-actions{display:flex;align-items:center;gap:12px;}
+.btn-visit{padding:8px 18px;border-radius:6px;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;font-family:'Cairo',sans-serif;}
+.btn-logout{padding:8px 18px;border-radius:6px;background:rgba(220,50,50,0.12);border:1px solid rgba(220,50,50,0.25);color:#ff6b6b;font-size:12px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;}
+
+/* ══ SIDEBAR + CONTENT ══ */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 64px);}
+.sidebar{background:rgba(10,16,28,0.8);border-left:1px solid rgba(201,169,110,0.08);padding:24px 0;}
+.sidebar-nav{display:flex;flex-direction:column;gap:4px;padding:0 12px;}
+.nav-item{padding:11px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;color:rgba(240,234,224,0.45);background:none;border:none;font-family:'Cairo',sans-serif;text-align:right;width:100%;}
+.nav-item:hover{background:rgba(201,169,110,0.08);color:rgba(240,234,224,0.8);}
+.nav-item.active{background:rgba(201,169,110,0.12);color:#C9A96E;border:1px solid rgba(201,169,110,0.2);}
+.nav-item .nav-icon{font-size:16px;flex-shrink:0;}
+
+/* ══ CONTENT ══ */
+.content{padding:36px 40px;max-width:900px;}
+.page{display:none;}
+.page.active{display:block;}
+.page-title{font-size:20px;font-weight:700;color:#F0EAE0;margin-bottom:6px;}
+.page-sub{font-size:13px;color:rgba(240,234,224,0.35);margin-bottom:32px;}
+
+/* ══ CARDS ══ */
+.card{background:rgba(20,32,52,0.8);border:1px solid rgba(201,169,110,0.12);border-radius:12px;padding:24px;margin-bottom:20px;}
+.card-title{font-size:14px;font-weight:700;color:#F0EAE0;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title .badge{background:rgba(201,169,110,0.12);color:#C9A96E;font-size:11px;padding:2px 8px;border-radius:4px;}
+
+/* ══ FORM ELEMENTS ══ */
+label{font-size:12px;color:rgba(240,234,224,0.55);font-weight:600;display:block;margin-bottom:6px;}
+input[type=text],input[type=number],input[type=password],input[type=url],textarea{width:100%;background:rgba(14,24,40,0.8);border:1px solid rgba(201,169,110,0.18);border-radius:8px;padding:10px 14px;color:#F0EAE0;font-size:13px;font-family:'Cairo',sans-serif;margin-bottom:16px;outline:none;transition:border-color .2s;}
+input:focus,textarea:focus{border-color:rgba(201,169,110,0.5);}
+textarea{min-height:80px;resize:vertical;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{padding:11px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;border:none;transition:opacity .2s;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:linear-gradient(135deg,#C9A96E,#9d7c42);color:#0e1828;width:100%;}
+.btn-danger{background:rgba(220,50,50,0.15);border:1px solid rgba(220,50,50,0.3);color:#ff6b6b;font-size:12px;padding:7px 14px;}
+.btn-sm{padding:7px 14px;font-size:12px;}
+.divider{height:1px;background:rgba(201,169,110,0.08);margin:20px 0;}
+
+/* ══ SERVICE CARDS ══ */
+.service-item{display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center;background:rgba(14,24,40,0.6);border:1px solid rgba(201,169,110,0.1);border-radius:10px;padding:14px;margin-bottom:10px;}
+.srv-icon-big{width:52px;height:52px;border-radius:8px;background:rgba(201,169,110,0.1);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;position:relative;}
+.srv-icon-big img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.srv-info{min-width:0;}
+.srv-name{font-size:14px;font-weight:700;color:#F0EAE0;margin-bottom:3px;}
+.srv-desc-preview{font-size:11px;color:rgba(240,234,224,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.srv-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.upload-btn{background:rgba(201,169,110,0.1);border:1px dashed rgba(201,169,110,0.3);color:#C9A96E;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'Cairo',sans-serif;white-space:nowrap;}
+.upload-btn:hover{background:rgba(201,169,110,0.2);}
+
+/* ══ PROJECT CARDS ══ */
+.proj-item{background:rgba(14,24,40,0.6);border:1px solid rgba(201,169,110,0.1);border-radius:10px;padding:16px;margin-bottom:12px;}
+.proj-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.proj-item-title{font-size:14px;font-weight:700;color:#F0EAE0;}
+.proj-img-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
+.proj-img-slot{height:64px;border:1px dashed rgba(201,169,110,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:rgba(28,43,69,0.4);transition:border-color .2s;}
+.proj-img-slot:hover{border-color:#C9A96E;}
+.proj-img-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.proj-img-slot span{font-size:20px;color:rgba(201,169,110,0.25);}
+.proj-loc-tag{font-size:11px;color:#C9A96E;margin-top:4px;}
+
+/* ══ STATS GRID ══ */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.stat-box{background:rgba(14,24,40,0.6);border:1px solid rgba(201,169,110,0.12);border-radius:10px;padding:16px;}
+.stat-box label{margin-bottom:8px;font-size:12px;color:#C9A96E;}
+
+/* ══ SOCIAL GRID ══ */
+.social-grid{display:flex;flex-direction:column;gap:12px;}
+.social-item{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:center;}
+.social-icon-wrap{width:36px;height:36px;background:rgba(201,169,110,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.social-item input{margin-bottom:0;}
+
+/* ══ ADD PROJECT FORM ══ */
+.add-proj-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(28,43,69,0.97);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;padding:12px 24px;border-radius:8px;font-size:13px;font-weight:600;z-index:9998;transition:transform .3s ease;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .content{padding:20px 16px;}
+  .form-row{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-icon">
+      <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#C9A96E" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <div class="login-logo">غريب العجمي</div>
+    <div class="login-sub">لوحة تحكم الأدمن</div>
+    <input type="password" id="pass-input" class="login-input" placeholder="● ● ● ● ● ●" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">دخول</button>
+    <div class="login-err" id="login-err">كلمة المرور غير صحيحة</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-logo">⚙️ لوحة التحكم<span>غريب العجمي للتطوير والتنفيذ</span></div>
+    </div>
+    <div class="top-bar-actions">
+      <a href="index.html" target="_blank" class="btn-visit">🌐 زيارة الموقع</a>
+      <button class="btn-logout" onclick="logout()">خروج</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-nav">
+        <button class="nav-item active" onclick="showPage('page-services',this)"><span class="nav-icon">🛠️</span> الخدمات</button>
+        <button class="nav-item" onclick="showPage('page-projects',this)"><span class="nav-icon">🏗️</span> المشاريع</button>
+        <button class="nav-item" onclick="showPage('page-stats',this)"><span class="nav-icon">📊</span> الإحصائيات</button>
+        <button class="nav-item" onclick="showPage('page-prices',this)"><span class="nav-icon">💰</span> حاسبة الأسعار</button>
+        <button class="nav-item" onclick="showPage('page-social',this)"><span class="nav-icon">📱</span> السوشيال ميديا</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ═ SERVICES PAGE ═ -->
+      <div id="page-services" class="page active">
+        <div class="page-title">🛠️ إدارة الخدمات</div>
+        <div class="page-sub">رفع صور لكل خدمة — تظهر في قسم "ماذا نقدم" في الموقع</div>
+        <div id="srv-list"></div>
+      </div>
+
+      <!-- ═ PROJECTS PAGE ═ -->
+      <div id="page-projects" class="page">
+        <div class="page-title">🏗️ إدارة المشاريع</div>
+        <div class="page-sub">أضف مشاريع جديدة أو عدّل الموجودين</div>
+
+        <!-- Add New Project -->
+        <div class="card">
+          <div class="card-title">➕ إضافة مشروع جديد</div>
+          <label>اسم المشروع</label>
+          <input type="text" id="np-title" placeholder="مثال: فيلا القاهرة الجديدة"/>
+          <div class="form-row">
+            <div>
+              <label>الموقع</label>
+              <input type="text" id="np-loc" placeholder="القاهرة الجديدة"/>
+            </div>
+            <div>
+              <label>نوع العمل</label>
+              <input type="text" id="np-type" placeholder="تشطيب كامل"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label>المساحة</label>
+              <input type="text" id="np-area" placeholder="٢٠٠ م²"/>
+            </div>
+            <div>
+              <label>مدة التنفيذ</label>
+              <input type="text" id="np-dur" placeholder="٣ أشهر"/>
+            </div>
+          </div>
+          <label>الصور (حتى ٤ صور)</label>
+          <div class="add-proj-imgs">
+            <div class="proj-img-slot" onclick="triggerUpload('np-img-0')"><span>📷</span><input type="file" id="np-img-0" accept="image/*" style="display:none" onchange="previewNewImg(this,0)"/></div>
+            <div class="proj-img-slot" onclick="triggerUpload('np-img-1')"><span>📷</span><input type="file" id="np-img-1" accept="image/*" style="display:none" onchange="previewNewImg(this,1)"/></div>
+            <div class="proj-img-slot" onclick="triggerUpload('np-img-2')"><span>📷</span><input type="file" id="np-img-2" accept="image/*" style="display:none" onchange="previewNewImg(this,2)"/></div>
+            <div class="proj-img-slot" onclick="triggerUpload('np-img-3')"><span>📷</span><input type="file" id="np-img-3" accept="image/*" style="display:none" onchange="previewNewImg(this,3)"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="addProject()">حفظ المشروع الجديد</button>
+        </div>
+
+        <!-- Existing Projects -->
+        <div class="card">
+          <div class="card-title">📁 المشاريع الحالية</div>
+          <div id="proj-list"></div>
+        </div>
+      </div>
+
+      <!-- ═ STATS PAGE ═ -->
+      <div id="page-stats" class="page">
+        <div class="page-title">📊 الإحصائيات</div>
+        <div class="page-sub">الأرقام التي تظهر أسفل الهيرو في الموقع</div>
+        <div class="card">
+          <div class="stats-grid">
+            <div class="stat-box">
+              <label>عدد المشاريع المنجزة</label>
+              <input type="text" id="stat-projects"/>
+            </div>
+            <div class="stat-box">
+              <label>سنوات الخبرة</label>
+              <input type="text" id="stat-years"/>
+            </div>
+            <div class="stat-box">
+              <label>نسبة التسليم في الموعد</label>
+              <input type="text" id="stat-delivery"/>
+            </div>
+            <div class="stat-box">
+              <label>تقييم الجودة</label>
+              <input type="text" id="stat-quality"/>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <button class="btn btn-primary" onclick="saveStats()">حفظ الإحصائيات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═ PRICES PAGE ═ -->
+      <div id="page-prices" class="page">
+        <div class="page-title">💰 حاسبة التكاليف</div>
+        <div class="page-sub">تحكم في أسعار المتر وبونص الغرف — تؤثر مباشرة على الحاسبة في الموقع</div>
+        <div class="card">
+          <div class="card-title">سعر المتر (بالجنيه)</div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <label>💚 اقتصادي — سعر المتر</label>
+              <input type="number" id="price-economic"/>
+            </div>
+            <div class="stat-box">
+              <label>🔵 متوسط — سعر المتر</label>
+              <input type="number" id="price-medium"/>
+            </div>
+            <div class="stat-box">
+              <label>⭐ فاخر — سعر المتر</label>
+              <input type="number" id="price-luxury"/>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="card-title">إضافة لكل غرفة (بالجنيه)</div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <label>💚 اقتصادي — بونص الغرفة</label>
+              <input type="number" id="bonus-economic"/>
+            </div>
+            <div class="stat-box">
+              <label>🔵 متوسط — بونص الغرفة</label>
+              <input type="number" id="bonus-medium"/>
+            </div>
+            <div class="stat-box">
+              <label>⭐ فاخر — بونص الغرفة</label>
+              <input type="number" id="bonus-luxury"/>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <button class="btn btn-primary" onclick="savePrices()">حفظ الأسعار</button>
+          </div>
+        </div>
+        <!-- Live Preview -->
+        <div class="card">
+          <div class="card-title">🧮 معاينة الحاسبة <span class="badge">مباشر</span></div>
+          <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+            <div>
+              <label>المساحة (م²)</label>
+              <input type="range" min="50" max="800" value="150" id="prev-area" oninput="updatePreview()" style="accent-color:#C9A96E;width:200px;"/>
+              <div style="font-size:12px;color:#C9A96E;margin-top:4px;" id="prev-area-val">١٥٠ م²</div>
+            </div>
+            <div>
+              <label>الغرف</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button onclick="prevRooms(-1)" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(201,169,110,0.3);background:transparent;color:#C9A96E;cursor:pointer;font-size:16px;">−</button>
+                <span id="prev-rooms-val" style="font-size:18px;font-weight:700;color:#F0EAE0;min-width:24px;text-align:center;">3</span>
+                <button onclick="prevRooms(1)" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(201,169,110,0.3);background:transparent;color:#C9A96E;cursor:pointer;font-size:16px;">+</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <button class="btn btn-sm" id="lvl-economic" onclick="setPrevLevel('economic')" style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.2);color:rgba(240,234,224,0.6);">اقتصادي</button>
+            <button class="btn btn-sm" id="lvl-medium" onclick="setPrevLevel('medium')" style="background:linear-gradient(135deg,#C9A96E,#9d7c42);color:#0e1828;">متوسط</button>
+            <button class="btn btn-sm" id="lvl-luxury" onclick="setPrevLevel('luxury')" style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.2);color:rgba(240,234,224,0.6);">فاخر</button>
+          </div>
+          <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:20px;text-align:center;">
+            <div style="font-size:12px;color:rgba(240,234,224,0.4);margin-bottom:8px;">التكلفة التقديرية</div>
+            <div style="font-size:2rem;font-weight:700;color:#C9A96E;" id="prev-result">0</div>
+            <div style="font-size:11px;color:rgba(240,234,224,0.3);margin-top:4px;">جنيه مصري — تقدير تقريبي</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═ SOCIAL PAGE ═ -->
+      <div id="page-social" class="page">
+        <div class="page-title">📱 السوشيال ميديا</div>
+        <div class="page-sub">روابط صفحاتك — تظهر في الهيرو وفي الفوتر</div>
+        <div class="card">
+          <div class="social-grid">
+            <div class="social-item">
+              <div class="social-icon-wrap">🔵</div>
+              <div>
+                <label>Facebook</label>
+                <input type="url" id="soc-fb" placeholder="https://facebook.com/yourpage"/>
+              </div>
+            </div>
+            <div class="social-item">
+              <div class="social-icon-wrap">📸</div>
+              <div>
+                <label>Instagram</label>
+                <input type="url" id="soc-ig" placeholder="https://instagram.com/yourpage"/>
+              </div>
+            </div>
+            <div class="social-item">
+              <div class="social-icon-wrap">🎵</div>
+              <div>
+                <label>TikTok</label>
+                <input type="url" id="soc-tt" placeholder="https://tiktok.com/@yourpage"/>
+              </div>
+            </div>
+            <div class="social-item">
+              <div class="social-icon-wrap">▶️</div>
+              <div>
+                <label>YouTube</label>
+                <input type="url" id="soc-yt" placeholder="https://youtube.com/yourchannel"/>
+              </div>
+            </div>
+            <div class="social-item">
+              <div class="social-icon-wrap">💬</div>
+              <div>
+                <label>WhatsApp</label>
+                <input type="url" id="soc-wa" placeholder="https://wa.me/201000000000"/>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn btn-primary" onclick="saveSocial()">حفظ روابط السوشيال</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end layout -->
+</div><!-- end app -->
+
+<!-- Toast -->
+<div id="toast">✅ تم الحفظ بنجاح</div>
+
+<script>
+// ══════════════════════════
+// DATA — shared with index.html via localStorage
+// ══════════════════════════
+const ADMIN_PASS = 'admin123'; // ← غيّرها لكلمة مرورك
+
+let siteData = JSON.parse(localStorage.getItem('siteData') || 'null') || {
+  stats: { projects:'78', years:'27+', delivery:'100%', quality:'5★' },
+  prices: { economic:1800, medium:2800, luxury:4500 },
+  bonus:  { economic:5000, medium:8000, luxury:14000 },
+  social: { fb:'#', ig:'#', tt:'#', yt:'#', wa:'https://wa.me/201000000000' },
+  services: [
+    { icon:'🏗️', titleAr:'تشطيب كامل',  titleEn:'Full Finishing',   descAr:'تشطيب شامل من الخام حتى الاستلام.',          descEn:'End-to-end finishing.', img:'' },
+    { icon:'🎨', titleAr:'تصميم داخلي', titleEn:'Interior Design',  descAr:'مفاهيم فاخرة تناسب أسلوب حياتك.',             descEn:'Luxury design concepts.', img:'' },
+    { icon:'🍳', titleAr:'مطابخ',        titleEn:'Kitchens',         descAr:'تصنيع مطابخ مخصصة بأفخم الخامات.',            descEn:'Custom kitchens.', img:'' },
+    { icon:'🔶', titleAr:'جبس بورد',     titleEn:'Gypsum Board',     descAr:'أسقف وحواجز جبسية بدقة عالية.',              descEn:'Architectural ceilings.', img:'' },
+    { icon:'🔧', titleAr:'سباكة',        titleEn:'Plumbing',         descAr:'تركيب وصيانة شبكات السباكة.',                descEn:'Plumbing works.', img:'' },
+    { icon:'⚡', titleAr:'كهرباء',       titleEn:'Electrical',       descAr:'أعمال كهربائية شاملة بأنظمة ذكية.',          descEn:'Full electrical works.', img:'' },
+    { icon:'🖌️',titleAr:'دهانات',       titleEn:'Painting',         descAr:'طلاء فاخر وتقنيات تشطيب زخرفية.',           descEn:'Premium painting.', img:'' },
+    { icon:'🛋️',titleAr:'أثاث',         titleEn:'Furniture',        descAr:'تصنيع وتركيب أثاث مخصص.',                   descEn:'Bespoke furniture.', img:'' },
+    { icon:'🏛️',titleAr:'واجهات',       titleEn:'Facades',          descAr:'تصميم وتكسية الواجهات المعمارية.',           descEn:'Facade finishing.', img:'' },
+    { icon:'❄️', titleAr:'تكييف',       titleEn:'Air Conditioning', descAr:'تركيب مكيفات مركزية وسبليت موفرة.',          descEn:'AC installation.', img:'' },
+  ],
+  projects: [
+    { titleAr:'بنتهاوس القاهرة الجديدة', locAr:'القاهرة الجديدة', areaAr:'٢٨٠ م²', durAr:'٤ أشهر', typeAr:'تشطيب كامل + تصميم داخلي', imgs:['','','',''] },
+    { titleAr:'شقة المعادي العائلية',     locAr:'المعادي، القاهرة', areaAr:'١٨٠ م²', durAr:'٣ أشهر', typeAr:'تشطيب فاخر', imgs:['','','',''] },
+    { titleAr:'فيلا الشيخ زايد',          locAr:'الشيخ زايد، الجيزة', areaAr:'٤٢٠ م²', durAr:'٦ أشهر', typeAr:'تنفيذ متكامل', imgs:['','','',''] },
+    { titleAr:'شقة أكتوبر',               locAr:'السادس من أكتوبر', areaAr:'١٤٠ م²', durAr:'٢.٥ شهر', typeAr:'تشطيب متوسط', imgs:['','','',''] },
+  ]
+};
+
+function save(){
+  localStorage.setItem('siteData', JSON.stringify(siteData));
+}
+
+// ══ LOGIN ══
+function login(){
+  const v = document.getElementById('pass-input').value;
+  if(v === ADMIN_PASS){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    init();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+function logout(){
+  location.reload();
+}
+
+// ══ NAVIGATION ══
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══ TOAST ══
+function toast(msg='✅ تم الحفظ'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══ SERVICES ══
+function renderServices(){
+  document.getElementById('srv-list').innerHTML = siteData.services.map((s,i) => `
+    <div class="service-item">
+      <div class="srv-icon-big" id="srv-icon-${i}">
+        ${s.img ? `<img src="${s.img}" alt=""/>` : s.icon}
+      </div>
+      <div class="srv-info">
+        <div class="srv-name">${s.titleAr}</div>
+        <div class="srv-desc-preview">${s.descAr}</div>
+      </div>
+      <div class="srv-actions">
+        <button class="upload-btn" onclick="document.getElementById('sf-${i}').click()">📷 رفع صورة</button>
+        <input type="file" id="sf-${i}" accept="image/*" style="display:none" onchange="uploadSrvImg(this,${i})"/>
+        ${s.img ? `<button class="btn btn-danger btn-sm" onclick="removeSrvImg(${i})">حذف الصورة</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+function uploadSrvImg(input,i){
+  const file = input.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = e => { siteData.services[i].img = e.target.result; save(); renderServices(); toast('✅ تم رفع الصورة'); };
+  r.readAsDataURL(file);
+}
+function removeSrvImg(i){ siteData.services[i].img=''; save(); renderServices(); toast('🗑️ تم حذف الصورة'); }
+
+// ══ PROJECTS ══
+function renderProjects(){
+  document.getElementById('proj-list').innerHTML = siteData.projects.map((p,i) => `
+    <div class="proj-item">
+      <div class="proj-item-head">
+        <div>
+          <div class="proj-item-title">${p.titleAr}</div>
+          <div class="proj-loc-tag">📍 ${p.locAr} · ${p.areaAr} · ${p.typeAr}</div>
+        </div>
+        <button class="btn btn-danger" onclick="deleteProject(${i})">حذف</button>
+      </div>
+      <div style="font-size:12px;color:rgba(240,234,224,0.4);margin-bottom:6px;">انقر على خانة لرفع صورة</div>
+      <div class="proj-img-row">
+        ${[0,1,2,3].map(idx => `
+          <div class="proj-img-slot" onclick="document.getElementById('pf-${i}-${idx}').click()">
+            ${p.imgs[idx] ? `<img src="${p.imgs[idx]}" alt=""/>` : `<span>📷</span>`}
+            <input type="file" id="pf-${i}-${idx}" accept="image/*" style="display:none" onchange="uploadProjImg(this,${i},${idx})"/>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function uploadProjImg(input,i,idx){
+  const file = input.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = e => { siteData.projects[i].imgs[idx] = e.target.result; save(); renderProjects(); toast('✅ تم رفع الصورة'); };
+  r.readAsDataURL(file);
+}
+function deleteProject(i){ if(confirm('حذف المشروع؟')){ siteData.projects.splice(i,1); save(); renderProjects(); toast('🗑️ تم حذف المشروع'); } }
+
+// Add project
+function triggerUpload(id){ document.getElementById(id).click(); }
+function previewNewImg(input, idx){
+  const file = input.files[0]; if(!file) return;
+  const slot = input.parentElement;
+  const r = new FileReader();
+  r.onload = e => { slot.innerHTML = `<img src="${e.target.result}" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"/><input type="file" id="np-img-${idx}" accept="image/*" style="display:none" onchange="previewNewImg(this,${idx})"/>`; };
+  r.readAsDataURL(file);
+}
+function getFile(id){ const inp = document.getElementById(id); return inp && inp.files[0] ? inp.files[0] : null; }
+async function readImg(file){ return new Promise(res => { const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(file); }); }
+async function addProject(){
+  const title = document.getElementById('np-title').value.trim();
+  if(!title){ alert('اكتب اسم المشروع'); return; }
+  const imgs = ['','','',''];
+  for(let i=0;i<4;i++){
+    const f = getFile('np-img-'+i);
+    if(f) imgs[i] = await readImg(f);
+  }
+  siteData.projects.push({
+    titleAr: title,
+    locAr: document.getElementById('np-loc').value||'',
+    areaAr: document.getElementById('np-area').value||'',
+    durAr: document.getElementById('np-dur').value||'',
+    typeAr: document.getElementById('np-type').value||'',
+    imgs
+  });
+  save(); renderProjects();
+  ['np-title','np-loc','np-area','np-dur','np-type'].forEach(id=>{ document.getElementById(id).value=''; });
+  // Reset image slots
+  [0,1,2,3].forEach(i => {
+    const slot = document.getElementById('np-img-'+i)?.parentElement;
+    if(slot) slot.innerHTML = `<span>📷</span><input type="file" id="np-img-${i}" accept="image/*" style="display:none" onchange="previewNewImg(this,${i})"/>`;
+  });
+  toast('✅ تم إضافة المشروع');
+}
+
+// ══ STATS ══
+function fillStats(){
+  const s = siteData.stats;
+  document.getElementById('stat-projects').value = s.projects;
+  document.getElementById('stat-years').value = s.years;
+  document.getElementById('stat-delivery').value = s.delivery;
+  document.getElementById('stat-quality').value = s.quality;
+}
+function saveStats(){
+  siteData.stats = {
+    projects: document.getElementById('stat-projects').value,
+    years: document.getElementById('stat-years').value,
+    delivery: document.getElementById('stat-delivery').value,
+    quality: document.getElementById('stat-quality').value,
+  };
+  save(); toast('✅ تم حفظ الإحصائيات');
+}
+
+// ══ PRICES ══
+function fillPrices(){
+  document.getElementById('price-economic').value = siteData.prices.economic;
+  document.getElementById('price-medium').value   = siteData.prices.medium;
+  document.getElementById('price-luxury').value   = siteData.prices.luxury;
+  document.getElementById('bonus-economic').value = siteData.bonus.economic;
+  document.getElementById('bonus-medium').value   = siteData.bonus.medium;
+  document.getElementById('bonus-luxury').value   = siteData.bonus.luxury;
+  updatePreview();
+}
+function savePrices(){
+  siteData.prices = {
+    economic: +document.getElementById('price-economic').value,
+    medium:   +document.getElementById('price-medium').value,
+    luxury:   +document.getElementById('price-luxury').value,
+  };
+  siteData.bonus = {
+    economic: +document.getElementById('bonus-economic').value,
+    medium:   +document.getElementById('bonus-medium').value,
+    luxury:   +document.getElementById('bonus-luxury').value,
+  };
+  save(); updatePreview(); toast('✅ تم حفظ الأسعار');
+}
+
+// Preview calculator
+let prevArea=150, prevLevel='medium', prevRoomsVal=3;
+function updatePreview(){
+  const area = +document.getElementById('prev-area').value;
+  prevArea = area;
+  document.getElementById('prev-area-val').textContent = area + ' م²';
+  document.getElementById('prev-rooms-val').textContent = prevRoomsVal;
+  const p = siteData.prices, b = siteData.bonus;
+  const total = prevArea * p[prevLevel] + prevRoomsVal * b[prevLevel];
+  document.getElementById('prev-result').textContent = total.toLocaleString('ar-EG') + ' ج.م';
+}
+function prevRooms(d){ prevRoomsVal=Math.min(12,Math.max(1,prevRoomsVal+d)); updatePreview(); }
+function setPrevLevel(l){
+  prevLevel=l;
+  ['economic','medium','luxury'].forEach(k => {
+    const btn = document.getElementById('lvl-'+k);
+    if(k===l){ btn.style.background='linear-gradient(135deg,#C9A96E,#9d7c42)'; btn.style.color='#0e1828'; btn.style.border='none'; }
+    else { btn.style.background='rgba(201,169,110,0.1)'; btn.style.color='rgba(240,234,224,0.6)'; btn.style.border='1px solid rgba(201,169,110,0.2)'; }
+  });
+  updatePreview();
+}
+
+// ══ SOCIAL ══
+function fillSocial(){
+  const s = siteData.social || {};
+  document.getElementById('soc-fb').value = s.fb||'';
+  document.getElementById('soc-ig').value = s.ig||'';
+  document.getElementById('soc-tt').value = s.tt||'';
+  document.getElementById('soc-yt').value = s.yt||'';
+  document.getElementById('soc-wa').value = s.wa||'';
+}
+function saveSocial(){
+  siteData.social = {
+    fb: document.getElementById('soc-fb').value||'#',
+    ig: document.getElementById('soc-ig').value||'#',
+    tt: document.getElementById('soc-tt').value||'#',
+    yt: document.getElementById('soc-yt').value||'#',
+    wa: document.getElementById('soc-wa').value||'#',
+  };
+  save(); toast('✅ تم حفظ روابط السوشيال');
+}
+
+// ══ INIT ══
+function init(){
+  renderServices();
+  renderProjects();
+  fillStats();
+  fillPrices();
+  fillSocial();
+}
+</script>
+</body>
+</html>
