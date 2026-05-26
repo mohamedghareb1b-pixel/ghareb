@@ -1,0 +1,14 @@
+# robots.txt — غريب العجمي للتطوير والتنفيذ
+# بيقول لروبوتات جوجل وباقي محركات البحث إيه اللي تعمله
+
+# اسمح لكل الروبوتات تدخل
+User-agent: *
+
+# امنعهم من صفحة الأدمن (مش محتاج تظهر في جوجل)
+Disallow: /ghareb/admin.html
+
+# اسمح بباقي كل حاجة
+Allow: /
+
+# رابط الـ Sitemap عشان جوجل يلاقيه بسرعة
+Sitemap: https://mohamedghareb1b-pixel.github.io/ghareb/sitemap.xml
